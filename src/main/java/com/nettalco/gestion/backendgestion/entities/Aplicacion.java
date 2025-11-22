@@ -4,7 +4,6 @@ import com.nettalco.gestion.backendgestion.util.JsonbConverter;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
@@ -45,8 +44,7 @@ public class Aplicacion {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
     
-    @UpdateTimestamp
-    @Column(name = "fecha_modificacion", nullable = false)
+    @Column(name = "fecha_modificacion", nullable = false, insertable = false, updatable = false)
     private LocalDateTime fechaModificacion;
     
     @JdbcTypeCode(SqlTypes.JSON)
