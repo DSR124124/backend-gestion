@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @Service
@@ -126,9 +128,23 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             }
             
             // 7. Verificar que la licencia no haya expirado
-            if (usuarioAplicacion.getFechaExpiracionLicencia() != null && 
-                usuarioAplicacion.getFechaExpiracionLicencia().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("La licencia del usuario para esta aplicación ha expirado");
+            // IMPORTANTE: La fecha en la base de datos está en UTC, debemos comparar en UTC
+            // La licencia está vigente si la fecha de expiración es igual o posterior a AHORA (en UTC)
+            LocalDateTime fechaExpiracion = usuarioAplicacion.getFechaExpiracionLicencia();
+            if (fechaExpiracion != null) {
+                // Convertir ambas fechas a UTC para comparar correctamente
+                // La fecha de expiración viene de la BD en UTC (timestamp with time zone)
+                ZonedDateTime fechaExpiracionUTC = fechaExpiracion.atZone(ZoneId.of("UTC"));
+                // Obtener la fecha/hora actual en UTC
+                ZonedDateTime ahoraUTC = ZonedDateTime.now(ZoneId.of("UTC"));
+                
+                // La licencia está expirada si la fecha de expiración es anterior a ahora (en UTC)
+                // Si fechaExpiracionUTC.isBefore(ahoraUTC) = true → la licencia ha expirado
+                // Si fechaExpiracionUTC.isBefore(ahoraUTC) = false → la licencia está vigente (es igual o posterior)
+                if (fechaExpiracionUTC.isBefore(ahoraUTC)) {
+                    throw new RuntimeException("La licencia del usuario para esta aplicación ha expirado");
+                }
+                // Si llegamos aquí, la fecha de expiración es igual o posterior a ahora (en UTC), la licencia está vigente
             }
             
             // Solo si todas las validaciones pasan, actualizar fecha de último acceso en UsuarioAplicacion
