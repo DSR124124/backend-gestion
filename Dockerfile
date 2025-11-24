@@ -27,6 +27,9 @@ RUN ./mvnw clean package -DskipTests -B
 # Etapa 2: Runtime
 FROM eclipse-temurin:17-jre-alpine
 
+# Instalar wget para health check
+RUN apk add --no-cache wget
+
 # Metadatos del contenedor
 LABEL maintainer="Backend Gestión"
 LABEL description="Backend de Gestión - Sistema de Autenticación y Control de Acceso"
@@ -51,13 +54,12 @@ USER spring:spring
 EXPOSE 8080
 
 # Variables de entorno por defecto (se pueden sobrescribir en Dockploy)
-ENV JAVA_OPTS="-Xms256m -Xmx512m" \
-    SPRING_PROFILES_ACTIVE="prod"
+ENV JAVA_OPTS="-Xms256m -Xmx512m"
 
-# Health check para Docker
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+# Health check para Docker (más tiempo de inicio para Spring Boot)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
 # Comando para ejecutar la aplicación
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
 
