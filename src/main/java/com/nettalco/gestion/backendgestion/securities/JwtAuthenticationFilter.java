@@ -22,22 +22,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
     
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (path == null) {
+            return false;
+        }
+        
+        // Normalizar el path (remover /gestion si existe)
+        String normalizedPath = path;
+        if (path.startsWith("/gestion")) {
+            normalizedPath = path.substring("/gestion".length());
+            if (normalizedPath.isEmpty()) {
+                normalizedPath = "/";
+            }
+        }
+        
+        // No aplicar el filtro a endpoints públicos
+        return normalizedPath.equals("/") ||
+               normalizedPath.equals("/api/health") ||
+               normalizedPath.startsWith("/api/auth/") ||
+               normalizedPath.startsWith("/actuator/") ||
+               path.equals("/gestion") ||
+               path.equals("/gestion/") ||
+               path.contains("/api/health") ||
+               path.contains("/api/auth/");
+    }
+    
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        
-        // Saltar el filtro para endpoints públicos
-        String path = request.getRequestURI();
-        if (path != null && (
-            path.contains("/api/auth/login") || 
-            path.contains("/api/health") || 
-            path.contains("/actuator/health") ||
-            path.equals("/") ||
-            path.equals("/gestion") ||
-            path.equals("/gestion/")
-        )) {
-            chain.doFilter(request, response);
-            return;
-        }
         
         String authHeader = request.getHeader("Authorization");
         

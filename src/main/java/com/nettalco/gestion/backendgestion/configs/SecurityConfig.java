@@ -32,17 +32,18 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/auth/login", 
+                    "/api/auth/**",  // Permitir todo el path de auth
                     "/api/health", 
-                    "/actuator/health",
+                    "/actuator/**",
                     "/",
                     "/gestion",
-                    "/gestion/",
+                    "/gestion/**",
                     "/error"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable()) // Deshabilitar autenticación básica
+            .formLogin(formLogin -> formLogin.disable()) // Deshabilitar formulario de login
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
