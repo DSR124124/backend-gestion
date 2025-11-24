@@ -34,11 +34,13 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",  // Permitir todo el path de auth
                     "/api/health", 
+                    "/api",  // Endpoint raíz de /api
                     "/actuator/**",
                     "/",
                     "/gestion",
                     "/gestion/**",
-                    "/error"
+                    "/error",
+                    "/error/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

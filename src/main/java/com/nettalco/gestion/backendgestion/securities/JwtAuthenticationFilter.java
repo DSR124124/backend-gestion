@@ -39,13 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // No aplicar el filtro a endpoints públicos
         return normalizedPath.equals("/") ||
+               normalizedPath.equals("/api") ||
                normalizedPath.equals("/api/health") ||
                normalizedPath.startsWith("/api/auth/") ||
                normalizedPath.startsWith("/actuator/") ||
+               normalizedPath.startsWith("/error") ||
                path.equals("/gestion") ||
                path.equals("/gestion/") ||
                path.contains("/api/health") ||
-               path.contains("/api/auth/");
+               path.contains("/api/auth/") ||
+               path.contains("/error");
     }
     
     @Override

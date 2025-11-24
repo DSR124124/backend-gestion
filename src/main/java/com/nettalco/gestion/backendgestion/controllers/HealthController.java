@@ -29,5 +29,22 @@ public class HealthController {
         response.put("message", "Backend de Gestión está funcionando correctamente");
         return ResponseEntity.ok(response);
     }
+    
+    /**
+     * Endpoint raíz para verificar que el servicio está activo
+     * GET /api
+     */
+    @GetMapping("")
+    public ResponseEntity<Map<String, Object>> root() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "ok");
+        response.put("service", "backend-gestion");
+        response.put("version", "1.0.0");
+        response.put("endpoints", Map.of(
+            "health", "/api/health",
+            "login", "/api/auth/login"
+        ));
+        return ResponseEntity.ok(response);
+    }
 }
 
