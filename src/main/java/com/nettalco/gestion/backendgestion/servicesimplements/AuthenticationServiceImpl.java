@@ -114,7 +114,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                     );
             
             // Esta verificación no debería fallar si existeVinculo es true, pero la hacemos por seguridad
-            if (!usuarioAplicacionOpt.isPresent()) {
+            if (usuarioAplicacionOpt.isEmpty()) {
                 throw new RuntimeException("Error: No se pudo obtener la información de vinculación del usuario.");
             }
             
