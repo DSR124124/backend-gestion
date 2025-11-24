@@ -45,7 +45,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         Aplicacion aplicacion = null;
         UsuarioAplicacion usuarioAplicacion = null;
         
-        // 1. Si es login desde aplicación externa, validar app PRIMERO
+        // 1. Si es login desde aplicación externa, validar app PRIMERO (OBLIGATORIO)
         if (isAppLogin) {
             String codigoProducto = appCodeValue.trim();
             Optional<Aplicacion> aplicacionOpt = aplicacionRepository.findByCodigoProducto(codigoProducto);
@@ -56,7 +56,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             
             aplicacion = aplicacionOpt.get();
             
-            if (!aplicacion.getActivo()) {
+            if (aplicacion.getActivo() == null || !aplicacion.getActivo()) {
                 throw new RuntimeException("La aplicación está inactiva");
             }
         }
@@ -86,23 +86,36 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         
         // 5. Si es login desde aplicación externa, OBLIGATORIO validar vinculación y licencia
         // Esta validación es CRÍTICA y NO puede omitirse - DEBE ejecutarse ANTES de generar el token
+        // IMPORTANTE: Si appCode está presente, esta validación DEBE ejecutarse sin excepciones
         if (isAppLogin) {
-            // Asegurar que la aplicación fue encontrada
+            // Asegurar que la aplicación fue encontrada (doble verificación)
             if (aplicacion == null) {
-                throw new RuntimeException("Error: La aplicación no fue encontrada");
+                throw new RuntimeException("Error crítico: La aplicación no fue encontrada. No se puede continuar.");
             }
             
-            // VALIDACIÓN OBLIGATORIA: Verificar que el usuario esté vinculado a la aplicación
-            // Esta validación NO puede omitirse bajo ninguna circunstancia
+            // VALIDACIÓN OBLIGATORIA Y CRÍTICA: Verificar que el usuario esté vinculado a la aplicación
+            // Esta es la validación más importante - sin vínculo, NO HAY ACCESO
+            // Usamos existsBy para verificar primero de forma más eficiente
+            boolean existeVinculo = usuarioAplicacionRepository.existsByUsuario_IdUsuarioAndAplicacion_IdAplicacion(
+                    usuario.getIdUsuario(), 
+                    aplicacion.getIdAplicacion()
+            );
+            
+            // Si no existe el vínculo, DENEGAR acceso inmediatamente - NO generar token bajo ninguna circunstancia
+            if (!existeVinculo) {
+                throw new RuntimeException("El usuario no tiene acceso a esta aplicación. Contacte al administrador para solicitar acceso.");
+            }
+            
+            // Obtener el vínculo para validar licencia
             Optional<UsuarioAplicacion> usuarioAplicacionOpt = usuarioAplicacionRepository
                     .findByUsuario_IdUsuarioAndAplicacion_IdAplicacion(
                             usuario.getIdUsuario(), 
                             aplicacion.getIdAplicacion()
                     );
             
-            // Si no existe el vínculo, DENEGAR acceso inmediatamente - NO generar token
-            if (usuarioAplicacionOpt.isEmpty()) {
-                throw new RuntimeException("El usuario no tiene acceso a esta aplicación. Contacte al administrador para solicitar acceso.");
+            // Esta verificación no debería fallar si existeVinculo es true, pero la hacemos por seguridad
+            if (!usuarioAplicacionOpt.isPresent()) {
+                throw new RuntimeException("Error: No se pudo obtener la información de vinculación del usuario.");
             }
             
             usuarioAplicacion = usuarioAplicacionOpt.get();
@@ -127,7 +140,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         usuario.setFechaUltimoAcceso(LocalDateTime.now());
         usuarioRepository.save(usuario);
         
-        // 9. Generar token JWT (solo si todas las validaciones pasaron)
+        // 9. Generar token JWT (solo si todas las validaciones pasaron, incluyendo vinculación si es app login)
         String token = jwtUtil.generateToken(
                 usuario.getUsername(),
                 usuario.getIdUsuario(),
