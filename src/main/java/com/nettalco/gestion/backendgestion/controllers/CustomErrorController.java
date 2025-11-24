@@ -1,6 +1,5 @@
 package com.nettalco.gestion.backendgestion.controllers;
 
-import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,9 +12,10 @@ import java.util.Map;
 
 /**
  * Controlador personalizado para manejar errores 404 y otros
+ * Compatible con Spring Boot 4.0.0
  */
 @RestController
-public class CustomErrorController implements ErrorController {
+public class CustomErrorController {
     
     @RequestMapping("/error")
     public ResponseEntity<Map<String, Object>> handleError(HttpServletRequest request) {
@@ -26,9 +26,14 @@ public class CustomErrorController implements ErrorController {
         Map<String, Object> error = new HashMap<>();
         
         if (status != null) {
-            int statusCode = Integer.parseInt(status.toString());
-            error.put("status", statusCode);
-            error.put("error", HttpStatus.valueOf(statusCode).getReasonPhrase());
+            try {
+                int statusCode = Integer.parseInt(status.toString());
+                error.put("status", statusCode);
+                error.put("error", HttpStatus.valueOf(statusCode).getReasonPhrase());
+            } catch (Exception e) {
+                error.put("status", 500);
+                error.put("error", "Internal Server Error");
+            }
         } else {
             error.put("status", 500);
             error.put("error", "Internal Server Error");
@@ -39,11 +44,11 @@ public class CustomErrorController implements ErrorController {
         error.put("timestamp", java.time.LocalDateTime.now().toString());
         
         // Información útil para el usuario
-        error.put("availableEndpoints", Map.of(
-            "health", "/api/health",
-            "login", "/api/auth/login",
-            "info", "Consulta /api/health para verificar el estado del servicio"
-        ));
+        Map<String, String> endpoints = new HashMap<>();
+        endpoints.put("health", "/api/health");
+        endpoints.put("login", "/api/auth/login");
+        endpoints.put("info", "Consulta /api/health para verificar el estado del servicio");
+        error.put("availableEndpoints", endpoints);
         
         HttpStatus httpStatus = status != null ? 
             HttpStatus.valueOf(Integer.parseInt(status.toString())) : 
