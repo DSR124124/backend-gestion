@@ -62,9 +62,7 @@ ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=7
 # Health check para Docker (más tiempo de inicio para Spring Boot)
 # IMPORTANTE: Usar el context-path /gestion en el health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/gestion/actuator/health || \
-        wget --no-verbose --tries=1 --spider http://localhost:8080/gestion/api/health || \
-        wget --no-verbose --tries=1 --spider http://localhost:8080/gestion || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/gestion/api/health || exit 1
 
 # Comando para ejecutar la aplicación
 # Asegurar que escucha en 0.0.0.0 para ser accesible desde fuera del contenedor
