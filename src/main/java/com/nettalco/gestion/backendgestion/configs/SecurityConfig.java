@@ -31,9 +31,18 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/health", "/actuator/health").permitAll()
+                .requestMatchers(
+                    "/api/auth/login", 
+                    "/api/health", 
+                    "/actuator/health",
+                    "/",
+                    "/gestion",
+                    "/gestion/",
+                    "/error"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
+            .httpBasic(httpBasic -> httpBasic.disable()) // Deshabilitar autenticación básica
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
