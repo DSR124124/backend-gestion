@@ -30,13 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // No aplicar el filtro a endpoints públicos
         // Con context-path=/gestion, los paths ya incluyen /gestion
-        return path.equals("/gestion") ||
-               path.equals("/gestion/") ||
-               path.equals("/gestion/api") ||
-               path.equals("/gestion/api/health") ||
-               path.startsWith("/gestion/api/auth/") ||
-               path.startsWith("/gestion/actuator/") ||
-               path.startsWith("/gestion/error");
+        return path.startsWith("/gestion/api/auth/");
     }
     
     @Override

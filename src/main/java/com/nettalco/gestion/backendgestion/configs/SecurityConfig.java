@@ -32,13 +32,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/auth/**",  // Permitir todo el path de auth
-                    "/api/health", 
-                    "/api",  // Endpoint raíz de /api
-                    "/actuator/**",
-                    "/",
-                    "/error",
-                    "/error/**"
+                    "/api/auth/**"  // Permitir todo el path de auth
                 ).permitAll()
                 .anyRequest().authenticated()
             )
