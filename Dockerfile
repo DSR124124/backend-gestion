@@ -54,12 +54,15 @@ USER spring:spring
 EXPOSE 8080
 
 # Variables de entorno por defecto (se pueden sobrescribir en Dockploy)
-ENV JAVA_OPTS="-Xms256m -Xmx512m"
+ENV JAVA_OPTS="-Xms256m -Xmx512m" \
+    SERVER_ADDRESS="0.0.0.0" \
+    SERVER_PORT="8080"
 
 # Health check para Docker (más tiempo de inicio para Spring Boot)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
 # Comando para ejecutar la aplicación
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
+# Asegurar que escucha en 0.0.0.0 para ser accesible desde fuera del contenedor
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dserver.address=0.0.0.0 -Dserver.port=8080 -jar app.jar"]
 
