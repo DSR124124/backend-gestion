@@ -50,19 +50,24 @@ RUN chown spring:spring app.jar
 # Cambiar al usuario no-root
 USER spring:spring
 
-# Exponer el puerto (debe coincidir con server.port en application.properties)
+# Exponer el puerto 8080 (Spring Boot escucha directamente aquí)
 EXPOSE 8080
 
 # Variables de entorno por defecto (se pueden sobrescribir en Dockploy)
-ENV JAVA_OPTS="-Xms256m -Xmx512m" \
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0" \
     SERVER_ADDRESS="0.0.0.0" \
-    SERVER_PORT="8080"
+    SERVER_PORT="8080" \
+    SPRING_PROFILES_ACTIVE="prod"
 
 # Health check para Docker (más tiempo de inicio para Spring Boot)
+# IMPORTANTE: Usar el context-path /gestion en el health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/gestion/actuator/health || \
+        wget --no-verbose --tries=1 --spider http://localhost:8080/gestion/api/health || \
+        wget --no-verbose --tries=1 --spider http://localhost:8080/gestion || exit 1
 
 # Comando para ejecutar la aplicación
 # Asegurar que escucha en 0.0.0.0 para ser accesible desde fuera del contenedor
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dserver.address=0.0.0.0 -Dserver.port=8080 -jar app.jar"]
+# Usar variables de entorno para flexibilidad, pero con valores por defecto seguros
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dserver.address=${SERVER_ADDRESS:-0.0.0.0} -Dserver.port=${SERVER_PORT:-8080} -jar app.jar"]
 
