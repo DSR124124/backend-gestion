@@ -10,13 +10,18 @@ public class LoginDTO {
     @NotBlank(message = "La contraseña es obligatoria")
     private String password;
     
+    // Opcional: solo requerido para aplicaciones móviles/externas
+    // Si es null o vacío, se asume login desde el sistema web de gestión
+    private String appCode;
+    
     // Constructors
     public LoginDTO() {
     }
     
-    public LoginDTO(String usernameOrEmail, String password) {
+    public LoginDTO(String usernameOrEmail, String password, String appCode) {
         this.usernameOrEmail = usernameOrEmail;
         this.password = password;
+        this.appCode = appCode;
     }
     
     // Getters and Setters
@@ -34,6 +39,14 @@ public class LoginDTO {
     
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    public String getAppCode() {
+        return appCode;
+    }
+    
+    public void setAppCode(String appCode) {
+        this.appCode = appCode;
     }
 }
 
