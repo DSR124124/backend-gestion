@@ -40,13 +40,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     public LoginResponseDTO login(LoginDTO loginDTO) {
         // Determinar si es login desde aplicación externa o sistema web
-        boolean isAppLogin = loginDTO.getAppCode() != null && !loginDTO.getAppCode().trim().isEmpty();
+        String appCodeValue = loginDTO.getAppCode();
+        boolean isAppLogin = appCodeValue != null && !appCodeValue.trim().isEmpty();
         Aplicacion aplicacion = null;
         UsuarioAplicacion usuarioAplicacion = null;
         
-        // 1. Si es login desde aplicación externa, validar app y vinculación
+        // 1. Si es login desde aplicación externa, validar app PRIMERO
         if (isAppLogin) {
-            Optional<Aplicacion> aplicacionOpt = aplicacionRepository.findByCodigoProducto(loginDTO.getAppCode());
+            String codigoProducto = appCodeValue.trim();
+            Optional<Aplicacion> aplicacionOpt = aplicacionRepository.findByCodigoProducto(codigoProducto);
             
             if (aplicacionOpt.isEmpty()) {
                 throw new RuntimeException("La aplicación no está registrada en el sistema");
@@ -82,22 +84,31 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new RuntimeException("Credenciales inválidas");
         }
         
-        // 5. Si es login desde aplicación externa, validar vinculación y licencia
+        // 5. Si es login desde aplicación externa, OBLIGATORIO validar vinculación y licencia
+        // Esta validación es CRÍTICA y NO puede omitirse - DEBE ejecutarse ANTES de generar el token
         if (isAppLogin) {
+            // Asegurar que la aplicación fue encontrada
+            if (aplicacion == null) {
+                throw new RuntimeException("Error: La aplicación no fue encontrada");
+            }
+            
+            // VALIDACIÓN OBLIGATORIA: Verificar que el usuario esté vinculado a la aplicación
+            // Esta validación NO puede omitirse bajo ninguna circunstancia
             Optional<UsuarioAplicacion> usuarioAplicacionOpt = usuarioAplicacionRepository
                     .findByUsuario_IdUsuarioAndAplicacion_IdAplicacion(
                             usuario.getIdUsuario(), 
                             aplicacion.getIdAplicacion()
                     );
             
+            // Si no existe el vínculo, DENEGAR acceso inmediatamente - NO generar token
             if (usuarioAplicacionOpt.isEmpty()) {
-                throw new RuntimeException("El usuario no tiene acceso a esta aplicación");
+                throw new RuntimeException("El usuario no tiene acceso a esta aplicación. Contacte al administrador para solicitar acceso.");
             }
             
             usuarioAplicacion = usuarioAplicacionOpt.get();
             
             // 6. Verificar que la licencia esté activa
-            if (!usuarioAplicacion.getLicenciaActiva()) {
+            if (usuarioAplicacion.getLicenciaActiva() == null || !usuarioAplicacion.getLicenciaActiva()) {
                 throw new RuntimeException("La licencia del usuario para esta aplicación está inactiva");
             }
             
@@ -106,19 +117,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 usuarioAplicacion.getFechaExpiracionLicencia().isBefore(LocalDateTime.now())) {
                 throw new RuntimeException("La licencia del usuario para esta aplicación ha expirado");
             }
-        }
-        
-        // 8. Actualizar fecha de último acceso del usuario
-        usuario.setFechaUltimoAcceso(LocalDateTime.now());
-        usuarioRepository.save(usuario);
-        
-        // 9. Si es login desde aplicación externa, actualizar fecha de último acceso en UsuarioAplicacion
-        if (isAppLogin && usuarioAplicacion != null) {
+            
+            // Solo si todas las validaciones pasan, actualizar fecha de último acceso en UsuarioAplicacion
             usuarioAplicacion.setFechaUltimoAcceso(LocalDateTime.now());
             usuarioAplicacionRepository.save(usuarioAplicacion);
         }
         
-        // 10. Generar token JWT
+        // 8. Actualizar fecha de último acceso del usuario (solo si llegamos aquí)
+        usuario.setFechaUltimoAcceso(LocalDateTime.now());
+        usuarioRepository.save(usuario);
+        
+        // 9. Generar token JWT (solo si todas las validaciones pasaron)
         String token = jwtUtil.generateToken(
                 usuario.getUsername(),
                 usuario.getIdUsuario(),
