@@ -37,8 +37,6 @@ public class SecurityConfig {
                     "/api",  // Endpoint raíz de /api
                     "/actuator/**",
                     "/",
-                    "/gestion",
-                    "/gestion/**",
                     "/error",
                     "/error/**"
                 ).permitAll()

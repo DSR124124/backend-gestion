@@ -28,27 +28,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return false;
         }
         
-        // Normalizar el path (remover /gestion si existe)
-        String normalizedPath = path;
-        if (path.startsWith("/gestion")) {
-            normalizedPath = path.substring("/gestion".length());
-            if (normalizedPath.isEmpty()) {
-                normalizedPath = "/";
-            }
-        }
-        
         // No aplicar el filtro a endpoints públicos
-        return normalizedPath.equals("/") ||
-               normalizedPath.equals("/api") ||
-               normalizedPath.equals("/api/health") ||
-               normalizedPath.startsWith("/api/auth/") ||
-               normalizedPath.startsWith("/actuator/") ||
-               normalizedPath.startsWith("/error") ||
-               path.equals("/gestion") ||
+        // Con context-path=/gestion, los paths ya incluyen /gestion
+        return path.equals("/gestion") ||
                path.equals("/gestion/") ||
-               path.contains("/api/health") ||
-               path.contains("/api/auth/") ||
-               path.contains("/error");
+               path.equals("/gestion/api") ||
+               path.equals("/gestion/api/health") ||
+               path.startsWith("/gestion/api/auth/") ||
+               path.startsWith("/gestion/actuator/") ||
+               path.startsWith("/gestion/error");
     }
     
     @Override
