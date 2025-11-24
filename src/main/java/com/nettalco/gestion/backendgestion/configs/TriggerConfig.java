@@ -1,4 +1,4 @@
-package com.nettalco.gestion.backendgestion.config;
+package com.nettalco.gestion.backendgestion.configs;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
