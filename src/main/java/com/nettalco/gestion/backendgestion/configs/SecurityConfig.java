@@ -32,8 +32,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/auth/**",  // Permitir todo el path de auth
-                    "/api/health/**" // Permitir health check
+                    "/api/auth/**",       // Permitir todo el path de auth
+                    "/api/health/**",     // Permitir health check
+                    "/api/version-app/**" // Permitir obtener versión de apps
                 ).permitAll()
                 .anyRequest().authenticated()
             )
