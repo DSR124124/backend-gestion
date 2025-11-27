@@ -43,7 +43,7 @@ public class VerificarActualizacionServiceImpl implements IVerificarActualizacio
             FROM lanzamientos l
             INNER JOIN aplicaciones a ON l.id_aplicacion = a.id_aplicacion
             INNER JOIN lanzamiento_grupo lg ON l.id_lanzamiento = lg.id_lanzamiento
-            INNER JOIN grupo_despliegue g ON lg.id_grupo = g.id_grupo
+            INNER JOIN grupos_despliegue g ON lg.id_grupo = g.id_grupo
             INNER JOIN usuario_grupo ug ON g.id_grupo = ug.id_grupo
             WHERE ug.id_usuario = :idUsuario
               AND a.codigo_producto = :codigoProducto
