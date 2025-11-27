@@ -44,11 +44,12 @@ public class VerificarActualizacionServiceImpl implements IVerificarActualizacio
             INNER JOIN aplicaciones a ON l.id_aplicacion = a.id_aplicacion
             INNER JOIN lanzamiento_grupo lg ON l.id_lanzamiento = lg.id_lanzamiento
             INNER JOIN grupo_despliegue g ON lg.id_grupo = g.id_grupo
-            INNER JOIN grupo_usuario gu ON g.id_grupo = gu.id_grupo
-            WHERE gu.id_usuario = :idUsuario
+            INNER JOIN usuario_grupo ug ON g.id_grupo = ug.id_grupo
+            WHERE ug.id_usuario = :idUsuario
               AND a.codigo_producto = :codigoProducto
               AND a.activo = true
               AND lg.activo = true
+              AND ug.activo = true
               AND l.estado IN ('activo', 'publicado')
               AND (lg.fecha_disponibilidad IS NULL OR lg.fecha_disponibilidad <= NOW())
               AND (lg.fecha_fin_disponibilidad IS NULL OR lg.fecha_fin_disponibilidad >= NOW())
