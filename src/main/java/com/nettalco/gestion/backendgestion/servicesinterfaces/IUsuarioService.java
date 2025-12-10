@@ -16,5 +16,9 @@ public interface IUsuarioService {
     List<UsuarioResponseDTO> listar();
     
     UsuarioResponseDTO listarPorId(Integer id);
+    
+    List<UsuarioResponseDTO> listarPorRol(Integer idRol);
+    
+    List<UsuarioResponseDTO> listarPorNombreRol(String nombreRol);
 }
 

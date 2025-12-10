@@ -123,6 +123,22 @@ public class UsuarioServiceImpl implements IUsuarioService {
         return convertirAResponseDTO(usuario);
     }
     
+    @Override
+    @Transactional(readOnly = true)
+    public List<UsuarioResponseDTO> listarPorRol(Integer idRol) {
+        return usuarioRepository.findByRol_IdRolAndActivoTrue(idRol).stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<UsuarioResponseDTO> listarPorNombreRol(String nombreRol) {
+        return usuarioRepository.findByRol_NombreRolIgnoreCaseAndActivoTrue(nombreRol).stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+    
     private UsuarioResponseDTO convertirAResponseDTO(Usuario usuario) {
         return new UsuarioResponseDTO(
                 usuario.getIdUsuario(),

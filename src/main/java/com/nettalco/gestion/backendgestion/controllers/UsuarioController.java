@@ -84,5 +84,17 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
+    
+    @GetMapping("/por-rol/{idRol}")
+    public ResponseEntity<List<UsuarioResponseDTO>> listarPorRol(@PathVariable Integer idRol) {
+        List<UsuarioResponseDTO> usuarios = usuarioService.listarPorRol(idRol);
+        return ResponseEntity.ok(usuarios);
+    }
+    
+    @GetMapping("/por-nombre-rol")
+    public ResponseEntity<List<UsuarioResponseDTO>> listarPorNombreRol(@RequestParam String nombreRol) {
+        List<UsuarioResponseDTO> usuarios = usuarioService.listarPorNombreRol(nombreRol);
+        return ResponseEntity.ok(usuarios);
+    }
 }
 
