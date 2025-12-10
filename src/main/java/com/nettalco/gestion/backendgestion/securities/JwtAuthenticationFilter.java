@@ -59,9 +59,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7).trim();
             
             try {
-                logger.info("🔐 Validando token JWT para path: {} (longitud: {}, primeros 20 chars: {}...)", 
-                    requestPath, token.length(), token.length() > 20 ? token.substring(0, 20) : token);
-                
                 if (jwtUtil.validateToken(token)) {
                     String username = jwtUtil.extractUsername(token);
                     Integer idRol = jwtUtil.extractIdRol(token);
@@ -73,44 +70,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.info("✅ Autenticación exitosa para usuario: {} (idRol: {}) en path: {}", username, idRol, requestPath);
                 } else {
                     // Token inválido - limpiar contexto y continuar (Spring Security manejará el 403)
                     SecurityContextHolder.clearContext();
-                    logger.error("❌ Token JWT inválido o expirado para path: {} (longitud: {})", requestPath, token.length());
-                    logger.error("   El token fue rechazado por validateToken(). Verifique expiración y secret key.");
+                    logger.error("Token JWT inválido o expirado para path: {}", requestPath);
                 }
             } catch (io.jsonwebtoken.ExpiredJwtException e) {
                 // Token expirado - limpiar contexto
                 SecurityContextHolder.clearContext();
-                logger.error("❌ Token JWT EXPIRADO para path: {}", requestPath);
-                logger.error("   Fecha de expiración: {}, Fecha actual: {}", e.getClaims().getExpiration(), new java.util.Date());
-                logger.error("   El token expiró hace {} ms", System.currentTimeMillis() - e.getClaims().getExpiration().getTime());
+                logger.error("Token JWT expirado para path: {} - Expiró: {}", requestPath, e.getClaims().getExpiration());
             } catch (io.jsonwebtoken.security.SignatureException | io.jsonwebtoken.security.InvalidKeyException e) {
                 // Error de firma - posible problema con secret key
                 SecurityContextHolder.clearContext();
-                logger.error("❌ ERROR DE FIRMA en token JWT para path: {}", requestPath);
-                logger.error("   Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
-                logger.error("   Posible causa: Secret key diferente entre backends o token corrupto");
+                logger.error("Error de firma en token JWT para path: {} - {}", requestPath, e.getMessage());
             } catch (io.jsonwebtoken.JwtException e) {
                 // Otro error JWT
                 SecurityContextHolder.clearContext();
-                logger.error("❌ Error JWT al validar token para path {}: {}", requestPath, e.getMessage());
-                logger.error("   Tipo: {}", e.getClass().getSimpleName());
+                logger.error("Error JWT al validar token para path {}: {}", requestPath, e.getMessage());
             } catch (Exception e) {
                 // Error inesperado al validar el token - limpiar contexto
                 SecurityContextHolder.clearContext();
-                logger.error("❌ EXCEPCIÓN inesperada al validar token JWT para path {}: {}", requestPath, e.getMessage());
-                logger.error("   Tipo de excepción: {}", e.getClass().getName());
-                if (e.getCause() != null) {
-                    logger.error("   Causa: {}", e.getCause().getMessage());
-                }
-                logger.error("   Stack trace completo:", e);
+                logger.error("Excepción inesperada al validar token JWT para path {}: {}", requestPath, e.getMessage(), e);
             }
         } else {
             // No hay token - limpiar contexto (Spring Security manejará el 403)
-            SecurityContextHolder.clearContext();
-            logger.warn("Petición sin token JWT en path: {} - Método: {}", requestPath, request.getMethod());
+            // Solo loguear si no es un health check
+            if (!requestPath.contains("/health")) {
+                SecurityContextHolder.clearContext();
+            } else {
+                SecurityContextHolder.clearContext();
+            }
         }
         
         chain.doFilter(request, response);
