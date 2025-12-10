@@ -2,6 +2,8 @@ package com.nettalco.gestion.backendgestion.repositories;
 
 import com.nettalco.gestion.backendgestion.entities.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,6 +26,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     
     List<Usuario> findByRol_IdRolAndActivoTrue(Integer idRol);
     
-    List<Usuario> findByRol_NombreRolIgnoreCaseAndActivoTrue(String nombreRol);
+    @Query("SELECT u FROM Usuario u WHERE LOWER(u.rol.nombreRol) = LOWER(:nombreRol) AND u.activo = true")
+    List<Usuario> findByRol_NombreRolIgnoreCaseAndActivoTrue(@Param("nombreRol") String nombreRol);
 }
 
