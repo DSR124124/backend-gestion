@@ -34,11 +34,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permitir peticiones OPTIONS (preflight CORS)
                 .requestMatchers(
-                    "/api/auth/**",       // Permitir todo el path de auth
+                    "/api/auth/**",       // Permitir todo el path de auth (con o sin context-path)
+                    "/gestion/api/auth/**", // Permitir auth con context-path explícito
                     "/api/health/**",     // Permitir health check
-                    "/api/version-app/**" // Permitir obtener versión de apps
+                    "/gestion/api/health/**", // Permitir health check con context-path
+                    "/api/version-app/**", // Permitir obtener versión de apps
+                    "/gestion/api/version-app/**" // Permitir versión de apps con context-path
                 ).permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().authenticated() // Todos los demás endpoints requieren autenticación
             )
             .httpBasic(httpBasic -> httpBasic.disable()) // Deshabilitar autenticación básica
             .formLogin(formLogin -> formLogin.disable()) // Deshabilitar formulario de login

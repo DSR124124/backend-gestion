@@ -53,6 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         String authHeader = request.getHeader("Authorization");
+        String requestPath = request.getRequestURI();
         
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
@@ -69,18 +70,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.debug("Autenticación exitosa para usuario: {} en path: {}", username, requestPath);
                 } else {
                     // Token inválido - limpiar contexto y continuar (Spring Security manejará el 403)
                     SecurityContextHolder.clearContext();
+                    logger.warn("Token JWT inválido o expirado para path: {}", requestPath);
                 }
             } catch (Exception e) {
                 // Error al validar el token - limpiar contexto
                 SecurityContextHolder.clearContext();
-                logger.error("Error validando token JWT: {}", e.getMessage(), e);
+                logger.error("Error validando token JWT para path {}: {}", requestPath, e.getMessage(), e);
             }
         } else {
             // No hay token - limpiar contexto (Spring Security manejará el 403)
             SecurityContextHolder.clearContext();
+            logger.warn("Petición sin token JWT en path: {} - Método: {}", requestPath, request.getMethod());
         }
         
         chain.doFilter(request, response);
