@@ -4,6 +4,7 @@ import com.nettalco.gestion.backendgestion.securities.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -31,6 +32,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permitir peticiones OPTIONS (preflight CORS)
                 .requestMatchers(
                     "/api/auth/**",       // Permitir todo el path de auth
                     "/api/health/**",     // Permitir health check
@@ -47,10 +49,24 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Usar setAllowedOriginPatterns en lugar de setAllowedOrigins
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        
+        // Cuando allowCredentials es true, no se puede usar * en allowedOrigins
+        // Especificar orígenes exactos
+        configuration.setAllowedOrigins(Arrays.asList(
+            "https://edugen.brianuceda.xyz",
+            "http://localhost:4200"
+        ));
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "Accept",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
         configuration.setAllowCredentials(true); // Permitir credenciales (cookies, headers de autorización)
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setMaxAge(3600L); // Cache preflight por 1 hora
