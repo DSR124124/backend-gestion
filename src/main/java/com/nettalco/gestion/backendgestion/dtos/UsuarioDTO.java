@@ -17,7 +17,7 @@ public class UsuarioDTO {
     @Size(max = 255, message = "El email no puede exceder 255 caracteres")
     private String email;
     
-    @NotBlank(message = "La contraseña es obligatoria")
+    // Password es opcional (solo se valida si se proporciona)
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
     

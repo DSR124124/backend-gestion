@@ -24,6 +24,13 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<?> crear(@Valid @RequestBody UsuarioDTO usuarioDTO) {
         try {
+            // Validar que el password sea obligatorio en creación
+            if (usuarioDTO.getPassword() == null || usuarioDTO.getPassword().trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("mensaje", "La contraseña es obligatoria");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+            
             UsuarioResponseDTO usuarioCreado = usuarioService.crear(usuarioDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCreado);
         } catch (RuntimeException e) {
