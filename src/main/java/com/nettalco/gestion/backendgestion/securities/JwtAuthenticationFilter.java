@@ -78,11 +78,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // Token inválido - limpiar contexto y continuar (Spring Security manejará el 403)
                     SecurityContextHolder.clearContext();
                     logger.error("❌ Token JWT inválido o expirado para path: {} (longitud: {})", requestPath, token.length());
+                    logger.error("   El token fue rechazado por validateToken(). Verifique expiración y secret key.");
                 }
-            } catch (Exception e) {
-                // Error al validar el token - limpiar contexto
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                // Token expirado - limpiar contexto
                 SecurityContextHolder.clearContext();
-                logger.error("❌ EXCEPCIÓN al validar token JWT para path {}: {}", requestPath, e.getMessage());
+                logger.error("❌ Token JWT EXPIRADO para path: {}", requestPath);
+                logger.error("   Fecha de expiración: {}, Fecha actual: {}", e.getClaims().getExpiration(), new java.util.Date());
+                logger.error("   El token expiró hace {} ms", System.currentTimeMillis() - e.getClaims().getExpiration().getTime());
+            } catch (io.jsonwebtoken.security.SignatureException | io.jsonwebtoken.security.InvalidKeyException e) {
+                // Error de firma - posible problema con secret key
+                SecurityContextHolder.clearContext();
+                logger.error("❌ ERROR DE FIRMA en token JWT para path: {}", requestPath);
+                logger.error("   Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
+                logger.error("   Posible causa: Secret key diferente entre backends o token corrupto");
+            } catch (io.jsonwebtoken.JwtException e) {
+                // Otro error JWT
+                SecurityContextHolder.clearContext();
+                logger.error("❌ Error JWT al validar token para path {}: {}", requestPath, e.getMessage());
+                logger.error("   Tipo: {}", e.getClass().getSimpleName());
+            } catch (Exception e) {
+                // Error inesperado al validar el token - limpiar contexto
+                SecurityContextHolder.clearContext();
+                logger.error("❌ EXCEPCIÓN inesperada al validar token JWT para path {}: {}", requestPath, e.getMessage());
                 logger.error("   Tipo de excepción: {}", e.getClass().getName());
                 if (e.getCause() != null) {
                     logger.error("   Causa: {}", e.getCause().getMessage());
