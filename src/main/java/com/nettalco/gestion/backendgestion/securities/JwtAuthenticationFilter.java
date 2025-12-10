@@ -54,18 +54,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String authHeader = request.getHeader("Authorization");
         
-        logger.debug("Procesando petición: {} {} - Authorization header presente: {}", 
+        logger.info("Procesando petición: {} {} - Authorization header presente: {}", 
             request.getMethod(), request.getRequestURI(), authHeader != null);
         
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
+            
+            // Log parcial del token para debugging (solo primeros y últimos caracteres)
+            String tokenPreview = token.length() > 20 
+                ? token.substring(0, 10) + "..." + token.substring(token.length() - 10)
+                : "***";
+            logger.info("Token recibido (preview): {}", tokenPreview);
             
             try {
                 if (jwtUtil.validateToken(token)) {
                     String username = jwtUtil.extractUsername(token);
                     Integer idRol = jwtUtil.extractIdRol(token);
                     
-                    logger.debug("Token válido para usuario: {} con rol: {}", username, idRol);
+                    logger.info("Token válido para usuario: {} con rol: {}", username, idRol);
                     
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             username,
@@ -74,24 +80,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.debug("Autenticación establecida en SecurityContext");
+                    
+                    // Verificar que la autenticación se estableció correctamente
+                    var context = SecurityContextHolder.getContext();
+                    var auth = context.getAuthentication();
+                    if (auth != null && auth.isAuthenticated()) {
+                        logger.info("Autenticación establecida correctamente en SecurityContext para usuario: {} con autoridades: {}", 
+                            username, auth.getAuthorities());
+                    } else {
+                        logger.error("ERROR: La autenticación NO se estableció correctamente en SecurityContext para usuario: {}", username);
+                    }
                 } else {
                     // Token inválido - limpiar contexto y continuar (Spring Security manejará el 403)
                     SecurityContextHolder.clearContext();
-                    logger.warn("Token JWT inválido o expirado para la petición: {} {}", 
-                        request.getMethod(), request.getRequestURI());
+                    logger.warn("Token JWT inválido o expirado para la petición: {} {} - Token preview: {}", 
+                        request.getMethod(), request.getRequestURI(), tokenPreview);
                 }
             } catch (Exception e) {
                 // Error al validar el token - limpiar contexto
                 SecurityContextHolder.clearContext();
-                logger.error("Error validando token JWT para {} {}: {}", 
-                    request.getMethod(), request.getRequestURI(), e.getMessage(), e);
+                logger.error("Error validando token JWT para {} {} - Token preview: {} - Error: {}", 
+                    request.getMethod(), request.getRequestURI(), tokenPreview, e.getMessage(), e);
             }
         } else {
             // No hay token - limpiar contexto (Spring Security manejará el 403)
             SecurityContextHolder.clearContext();
-            logger.warn("No se encontró header Authorization en la petición: {} {}", 
-                request.getMethod(), request.getRequestURI());
+            if (authHeader != null) {
+                logger.warn("Header Authorization presente pero no tiene formato Bearer para la petición: {} {} - Header: {}", 
+                    request.getMethod(), request.getRequestURI(), authHeader.length() > 50 ? authHeader.substring(0, 50) + "..." : authHeader);
+            } else {
+                logger.warn("No se encontró header Authorization en la petición: {} {}", 
+                    request.getMethod(), request.getRequestURI());
+            }
         }
         
         chain.doFilter(request, response);
