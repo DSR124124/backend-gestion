@@ -39,13 +39,22 @@ public class JwtUtil {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (ExpiredJwtException e) {
-            logger.warn("Token JWT expirado al extraer claims: {}", e.getMessage());
+            logger.error("❌ Token JWT EXPIRADO al extraer claims. Fecha expiración: {}, Fecha actual: {}", 
+                e.getClaims().getExpiration(), new Date());
             throw e;
-        } catch (SignatureException e) {
-            logger.error("Error de firma al extraer claims del token JWT. Posible causa: Secret key diferente. Error: {}", e.getMessage());
+        } catch (SignatureException | io.jsonwebtoken.security.InvalidKeyException e) {
+            logger.error("❌ ERROR DE FIRMA al extraer claims del token JWT. Posible causa: Secret key diferente.");
+            logger.error("   Tipo de excepción: {}", e.getClass().getName());
+            logger.error("   Mensaje: {}", e.getMessage());
+            logger.error("   Secret key configurada (primeros 20 chars): {}", 
+                secret != null && secret.length() > 20 ? secret.substring(0, 20) + "..." : "null o vacía");
+            throw e;
+        } catch (io.jsonwebtoken.JwtException e) {
+            logger.error("❌ Error JWT al extraer claims. Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
             throw e;
         } catch (Exception e) {
-            logger.error("Error al extraer claims del token JWT. Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
+            logger.error("❌ Error inesperado al extraer claims del token JWT. Tipo: {}, Mensaje: {}", 
+                e.getClass().getSimpleName(), e.getMessage(), e);
             throw e;
         }
     }
@@ -82,16 +91,19 @@ public class JwtUtil {
             
             return isValid;
         } catch (ExpiredJwtException e) {
-            logger.warn("Token JWT expirado: {}", e.getMessage());
+            logger.error("❌ Token JWT EXPIRADO. Fecha expiración: {}, Fecha actual: {}", 
+                e.getClaims().getExpiration(), new Date());
             return false;
-        } catch (SignatureException e) {
-            logger.error("Error de firma en token JWT. Posible causa: Secret key diferente. Error: {}", e.getMessage());
+        } catch (SignatureException | io.jsonwebtoken.security.InvalidKeyException e) {
+            logger.error("❌ ERROR DE FIRMA en token JWT. Posible causa: Secret key diferente.");
+            logger.error("   Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
             return false;
-        } catch (io.jsonwebtoken.security.InvalidKeyException e) {
-            logger.error("Clave inválida para validar token JWT: {}", e.getMessage());
+        } catch (io.jsonwebtoken.JwtException e) {
+            logger.error("❌ Error JWT al validar token. Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
             return false;
         } catch (Exception e) {
-            logger.error("Error al validar token JWT. Tipo: {}, Mensaje: {}", e.getClass().getSimpleName(), e.getMessage());
+            logger.error("❌ Error inesperado al validar token JWT. Tipo: {}, Mensaje: {}", 
+                e.getClass().getSimpleName(), e.getMessage(), e);
             return false;
         }
     }

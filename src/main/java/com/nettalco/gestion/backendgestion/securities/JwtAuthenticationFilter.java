@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7).trim();
             
             try {
-                logger.debug("Validando token JWT para path: {} (longitud: {}, primeros 20 chars: {}...)", 
+                logger.info("🔐 Validando token JWT para path: {} (longitud: {}, primeros 20 chars: {}...)", 
                     requestPath, token.length(), token.length() > 20 ? token.substring(0, 20) : token);
                 
                 if (jwtUtil.validateToken(token)) {
@@ -73,17 +73,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.info("Autenticación exitosa para usuario: {} (idRol: {}) en path: {}", username, idRol, requestPath);
+                    logger.info("✅ Autenticación exitosa para usuario: {} (idRol: {}) en path: {}", username, idRol, requestPath);
                 } else {
                     // Token inválido - limpiar contexto y continuar (Spring Security manejará el 403)
                     SecurityContextHolder.clearContext();
-                    logger.warn("Token JWT inválido o expirado para path: {} (longitud: {})", requestPath, token.length());
+                    logger.error("❌ Token JWT inválido o expirado para path: {} (longitud: {})", requestPath, token.length());
                 }
             } catch (Exception e) {
                 // Error al validar el token - limpiar contexto
                 SecurityContextHolder.clearContext();
-                logger.error("Error validando token JWT para path {}: {} - Tipo de excepción: {}", 
-                    requestPath, e.getMessage(), e.getClass().getSimpleName(), e);
+                logger.error("❌ EXCEPCIÓN al validar token JWT para path {}: {}", requestPath, e.getMessage());
+                logger.error("   Tipo de excepción: {}", e.getClass().getName());
+                if (e.getCause() != null) {
+                    logger.error("   Causa: {}", e.getCause().getMessage());
+                }
+                logger.error("   Stack trace completo:", e);
             }
         } else {
             // No hay token - limpiar contexto (Spring Security manejará el 403)
