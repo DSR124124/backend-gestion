@@ -49,11 +49,10 @@ public class AplicacionServiceImpl implements IAplicacionService {
         aplicacion.setNombreAplicacion(aplicacionDTO.getNombreAplicacion());
         aplicacion.setDescripcion(aplicacionDTO.getDescripcion());
         aplicacion.setCodigoProducto(aplicacionDTO.getCodigoProducto());
-        aplicacion.setIconoUrl(aplicacionDTO.getIconoUrl());
         aplicacion.setRepositorioUrl(aplicacionDTO.getRepositorioUrl());
+        aplicacion.setUrl(aplicacionDTO.getUrl());
         aplicacion.setResponsable(responsable);
         aplicacion.setActivo(aplicacionDTO.getActivo() != null ? aplicacionDTO.getActivo() : true);
-        aplicacion.setMetadata(aplicacionDTO.getMetadata());
         
         Aplicacion aplicacionGuardada = aplicacionRepository.save(aplicacion);
         return convertirAResponseDTO(aplicacionGuardada);
@@ -86,13 +85,12 @@ public class AplicacionServiceImpl implements IAplicacionService {
         aplicacion.setNombreAplicacion(aplicacionDTO.getNombreAplicacion());
         aplicacion.setDescripcion(aplicacionDTO.getDescripcion());
         aplicacion.setCodigoProducto(aplicacionDTO.getCodigoProducto());
-        aplicacion.setIconoUrl(aplicacionDTO.getIconoUrl());
         aplicacion.setRepositorioUrl(aplicacionDTO.getRepositorioUrl());
+        aplicacion.setUrl(aplicacionDTO.getUrl());
         aplicacion.setResponsable(responsable);
         if (aplicacionDTO.getActivo() != null) {
             aplicacion.setActivo(aplicacionDTO.getActivo());
         }
-        aplicacion.setMetadata(aplicacionDTO.getMetadata());
         
         Aplicacion aplicacionActualizada = aplicacionRepository.save(aplicacion);
         return convertirAResponseDTO(aplicacionActualizada);
@@ -128,14 +126,13 @@ public class AplicacionServiceImpl implements IAplicacionService {
                 aplicacion.getNombreAplicacion(),
                 aplicacion.getDescripcion(),
                 aplicacion.getCodigoProducto(),
-                aplicacion.getIconoUrl(),
                 aplicacion.getRepositorioUrl(),
+                aplicacion.getUrl(),
                 aplicacion.getResponsable() != null ? aplicacion.getResponsable().getIdUsuario() : null,
                 aplicacion.getResponsable() != null ? aplicacion.getResponsable().getNombreCompleto() : null,
                 aplicacion.getActivo(),
                 aplicacion.getFechaCreacion(),
-                aplicacion.getFechaModificacion(),
-                aplicacion.getMetadata()
+                aplicacion.getFechaModificacion()
         );
     }
 }

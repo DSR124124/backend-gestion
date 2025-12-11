@@ -1,7 +1,6 @@
 package com.nettalco.gestion.backendgestion.dtos;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 public class AplicacionResponseDTO {
     
@@ -9,36 +8,33 @@ public class AplicacionResponseDTO {
     private String nombreAplicacion;
     private String descripcion;
     private String codigoProducto;
-    private String iconoUrl;
     private String repositorioUrl;
+    private String url;
     private Integer responsableId;
     private String responsableNombre;
     private Boolean activo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaModificacion;
-    private Map<String, Object> metadata;
     
     // Constructors
     public AplicacionResponseDTO() {
     }
     
     public AplicacionResponseDTO(Integer idAplicacion, String nombreAplicacion, String descripcion, 
-                                String codigoProducto, String iconoUrl, String repositorioUrl, 
-                                Integer responsableId, String responsableNombre, Boolean activo, 
-                                LocalDateTime fechaCreacion, LocalDateTime fechaModificacion, 
-                                Map<String, Object> metadata) {
+                                String codigoProducto, String repositorioUrl, 
+                                String url, Integer responsableId, String responsableNombre, Boolean activo, 
+                                LocalDateTime fechaCreacion, LocalDateTime fechaModificacion) {
         this.idAplicacion = idAplicacion;
         this.nombreAplicacion = nombreAplicacion;
         this.descripcion = descripcion;
         this.codigoProducto = codigoProducto;
-        this.iconoUrl = iconoUrl;
         this.repositorioUrl = repositorioUrl;
+        this.url = url;
         this.responsableId = responsableId;
         this.responsableNombre = responsableNombre;
         this.activo = activo;
         this.fechaCreacion = fechaCreacion;
         this.fechaModificacion = fechaModificacion;
-        this.metadata = metadata;
     }
     
     // Getters and Setters
@@ -74,20 +70,20 @@ public class AplicacionResponseDTO {
         this.codigoProducto = codigoProducto;
     }
     
-    public String getIconoUrl() {
-        return iconoUrl;
-    }
-    
-    public void setIconoUrl(String iconoUrl) {
-        this.iconoUrl = iconoUrl;
-    }
-    
     public String getRepositorioUrl() {
         return repositorioUrl;
     }
     
     public void setRepositorioUrl(String repositorioUrl) {
         this.repositorioUrl = repositorioUrl;
+    }
+    
+    public String getUrl() {
+        return url;
+    }
+    
+    public void setUrl(String url) {
+        this.url = url;
     }
     
     public Integer getResponsableId() {
@@ -128,14 +124,6 @@ public class AplicacionResponseDTO {
     
     public void setFechaModificacion(LocalDateTime fechaModificacion) {
         this.fechaModificacion = fechaModificacion;
-    }
-    
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-    
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
     }
 }
 

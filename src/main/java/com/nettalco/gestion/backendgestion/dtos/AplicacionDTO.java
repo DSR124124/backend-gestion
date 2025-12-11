@@ -2,7 +2,6 @@ package com.nettalco.gestion.backendgestion.dtos;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.util.Map;
 
 public class AplicacionDTO {
     
@@ -15,28 +14,25 @@ public class AplicacionDTO {
     @Size(max = 50, message = "El código de producto no puede exceder 50 caracteres")
     private String codigoProducto;
     
-    @Size(max = 500, message = "La URL del icono no puede exceder 500 caracteres")
-    private String iconoUrl;
-    
     @Size(max = 500, message = "La URL del repositorio no puede exceder 500 caracteres")
     private String repositorioUrl;
+    
+    @Size(max = 500, message = "La URL no puede exceder 500 caracteres")
+    private String url;
     
     private Integer responsableId;
     
     private Boolean activo;
-    
-    private Map<String, Object> metadata;
     
     // Constructors
     public AplicacionDTO() {
     }
     
     public AplicacionDTO(String nombreAplicacion, String descripcion, String codigoProducto, 
-                        String iconoUrl, String repositorioUrl, Integer responsableId, Boolean activo) {
+                        String repositorioUrl, Integer responsableId, Boolean activo) {
         this.nombreAplicacion = nombreAplicacion;
         this.descripcion = descripcion;
         this.codigoProducto = codigoProducto;
-        this.iconoUrl = iconoUrl;
         this.repositorioUrl = repositorioUrl;
         this.responsableId = responsableId;
         this.activo = activo;
@@ -67,20 +63,20 @@ public class AplicacionDTO {
         this.codigoProducto = codigoProducto;
     }
     
-    public String getIconoUrl() {
-        return iconoUrl;
-    }
-    
-    public void setIconoUrl(String iconoUrl) {
-        this.iconoUrl = iconoUrl;
-    }
-    
     public String getRepositorioUrl() {
         return repositorioUrl;
     }
     
     public void setRepositorioUrl(String repositorioUrl) {
         this.repositorioUrl = repositorioUrl;
+    }
+    
+    public String getUrl() {
+        return url;
+    }
+    
+    public void setUrl(String url) {
+        this.url = url;
     }
     
     public Integer getResponsableId() {
@@ -97,14 +93,6 @@ public class AplicacionDTO {
     
     public void setActivo(Boolean activo) {
         this.activo = activo;
-    }
-    
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-    
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
     }
 }
 
