@@ -77,5 +77,17 @@ public class AplicacionController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
+    
+    @GetMapping("/por-codigo/{codigo}")
+    public ResponseEntity<?> listarPorCodigo(@PathVariable String codigo) {
+        try {
+            AplicacionResponseDTO aplicacion = aplicacionService.listarPorCodigo(codigo);
+            return ResponseEntity.ok(aplicacion);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+    }
 }
 

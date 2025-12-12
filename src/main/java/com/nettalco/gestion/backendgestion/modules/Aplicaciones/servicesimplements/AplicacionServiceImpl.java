@@ -120,6 +120,14 @@ public class AplicacionServiceImpl implements IAplicacionService {
         return convertirAResponseDTO(aplicacion);
     }
     
+    @Override
+    @Transactional(readOnly = true)
+    public AplicacionResponseDTO listarPorCodigo(String codigo) {
+        Aplicacion aplicacion = aplicacionRepository.findByCodigoProducto(codigo)
+                .orElseThrow(() -> new RuntimeException("Aplicación no encontrada con código: " + codigo));
+        return convertirAResponseDTO(aplicacion);
+    }
+    
     private AplicacionResponseDTO convertirAResponseDTO(Aplicacion aplicacion) {
         return new AplicacionResponseDTO(
                 aplicacion.getIdAplicacion(),

@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Este script crea las tablas necesarias para un sistema de notificaciones
 -- multi-aplicativo donde cada área puede crear y asignar notificaciones
--- a usuarios individuales o grupos.
+-- a usuarios individuales.
 -- 
 -- Base de datos: backend-gestion (sistema central)
 -- ============================================================================
@@ -116,106 +116,7 @@ COMMENT ON COLUMN notificacion_destinatarios.leida IS 'Indica si el usuario ha l
 COMMENT ON COLUMN notificacion_destinatarios.confirmada IS 'Indica si el usuario ha confirmado la notificación (si requiere confirmación)';
 
 -- ============================================================================
--- 3. TABLA: notificacion_grupos
--- ============================================================================
--- Almacena los grupos destinatarios de cada notificación
--- Cuando se asigna a un grupo, se crean registros automáticos en 
--- notificacion_destinatarios para cada usuario del grupo
--- ============================================================================
-CREATE TABLE IF NOT EXISTS notificacion_grupos (
-    id_notificacion_grupo SERIAL PRIMARY KEY,
-    
-    -- Relación con notificación
-    id_notificacion INTEGER NOT NULL,
-    CONSTRAINT fk_ng_notificacion 
-        FOREIGN KEY (id_notificacion) 
-        REFERENCES notificaciones(id_notificacion) 
-        ON DELETE CASCADE,
-    
-    -- Grupo destinatario
-    id_grupo INTEGER NOT NULL,
-    CONSTRAINT fk_ng_grupo 
-        FOREIGN KEY (id_grupo) 
-        REFERENCES grupos_despliegue(id_grupo) 
-        ON DELETE CASCADE,
-    
-    -- Fecha de asignación
-    fecha_asignacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Constraint único: un grupo solo puede recibir una notificación una vez
-    CONSTRAINT uk_notificacion_grupo UNIQUE (id_notificacion, id_grupo)
-);
-
--- Índices
-CREATE INDEX IF NOT EXISTS idx_ng_notificacion ON notificacion_grupos(id_notificacion);
-CREATE INDEX IF NOT EXISTS idx_ng_grupo ON notificacion_grupos(id_grupo);
-
-COMMENT ON TABLE notificacion_grupos IS 'Grupos destinatarios de las notificaciones';
-COMMENT ON COLUMN notificacion_grupos.id_grupo IS 'Grupo de despliegue que recibirá la notificación';
-
--- ============================================================================
--- 4. FUNCIÓN: Asignar notificación a grupo
--- ============================================================================
--- Esta función asigna automáticamente una notificación a todos los usuarios
--- activos de un grupo, creando registros en notificacion_destinatarios
--- ============================================================================
-CREATE OR REPLACE FUNCTION asignar_notificacion_a_grupo(
-    p_id_notificacion INTEGER,
-    p_id_grupo INTEGER
-) RETURNS INTEGER AS $$
-DECLARE
-    v_usuarios_asignados INTEGER := 0;
-    v_usuario_record RECORD;
-BEGIN
-    -- Verificar que la notificación existe y está activa
-    IF NOT EXISTS (
-        SELECT 1 FROM notificaciones 
-        WHERE id_notificacion = p_id_notificacion AND activo = true
-    ) THEN
-        RAISE EXCEPTION 'La notificación no existe o no está activa';
-    END IF;
-    
-    -- Verificar que el grupo existe y está activo
-    IF NOT EXISTS (
-        SELECT 1 FROM grupos_despliegue 
-        WHERE id_grupo = p_id_grupo AND activo = true
-    ) THEN
-        RAISE EXCEPTION 'El grupo no existe o no está activo';
-    END IF;
-    
-    -- Insertar relación notificación-grupo
-    INSERT INTO notificacion_grupos (id_notificacion, id_grupo)
-    VALUES (p_id_notificacion, p_id_grupo)
-    ON CONFLICT (id_notificacion, id_grupo) DO NOTHING;
-    
-    -- Asignar la notificación a todos los usuarios activos del grupo
-    FOR v_usuario_record IN
-        SELECT DISTINCT ug.id_usuario
-        FROM usuario_grupo ug
-        WHERE ug.id_grupo = p_id_grupo
-          AND ug.activo = true
-          AND EXISTS (
-              SELECT 1 FROM usuarios u 
-              WHERE u.id_usuario = ug.id_usuario 
-              AND u.activo = true
-          )
-    LOOP
-        -- Insertar en notificacion_destinatarios si no existe
-        INSERT INTO notificacion_destinatarios (id_notificacion, id_usuario)
-        VALUES (p_id_notificacion, v_usuario_record.id_usuario)
-        ON CONFLICT (id_notificacion, id_usuario) DO NOTHING;
-        
-        v_usuarios_asignados := v_usuarios_asignados + 1;
-    END LOOP;
-    
-    RETURN v_usuarios_asignados;
-END;
-$$ LANGUAGE plpgsql;
-
-COMMENT ON FUNCTION asignar_notificacion_a_grupo IS 'Asigna una notificación a todos los usuarios activos de un grupo';
-
--- ============================================================================
--- 5. FUNCIÓN: Obtener notificaciones no leídas de un usuario
+-- 3. FUNCIÓN: Obtener notificaciones no leídas de un usuario
 -- ============================================================================
 -- Retorna las notificaciones no leídas y activas para un usuario específico
 -- ============================================================================
@@ -278,7 +179,7 @@ $$ LANGUAGE plpgsql;
 COMMENT ON FUNCTION obtener_notificaciones_no_leidas IS 'Obtiene las notificaciones no leídas de un usuario, opcionalmente filtradas por aplicación';
 
 -- ============================================================================
--- 6. TRIGGER: Actualizar fecha_modificacion automáticamente
+-- 4. TRIGGER: Actualizar fecha_modificacion automáticamente
 -- ============================================================================
 CREATE OR REPLACE FUNCTION actualizar_fecha_modificacion_notificacion()
 RETURNS TRIGGER AS $$
@@ -294,39 +195,7 @@ CREATE TRIGGER trigger_actualizar_fecha_modificacion_notificacion
     EXECUTE FUNCTION actualizar_fecha_modificacion_notificacion();
 
 -- ============================================================================
--- 7. TRIGGER: Actualizar notificacion_destinatarios cuando se agregan usuarios a un grupo
--- ============================================================================
--- Si un usuario se agrega a un grupo que ya tiene notificaciones asignadas,
--- se le asignan automáticamente esas notificaciones
--- ============================================================================
-CREATE OR REPLACE FUNCTION asignar_notificaciones_a_nuevo_usuario_grupo()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Si el usuario se agrega a un grupo activo
-    IF NEW.activo = true THEN
-        -- Asignar todas las notificaciones activas del grupo al nuevo usuario
-        INSERT INTO notificacion_destinatarios (id_notificacion, id_usuario)
-        SELECT ng.id_notificacion, NEW.id_usuario
-        FROM notificacion_grupos ng
-        INNER JOIN notificaciones n ON ng.id_notificacion = n.id_notificacion
-        WHERE ng.id_grupo = NEW.id_grupo
-          AND n.activo = true
-          AND (n.fecha_expiracion IS NULL OR n.fecha_expiracion > CURRENT_TIMESTAMP)
-        ON CONFLICT (id_notificacion, id_usuario) DO NOTHING;
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_asignar_notificaciones_a_nuevo_usuario_grupo
-    AFTER INSERT OR UPDATE ON usuario_grupo
-    FOR EACH ROW
-    WHEN (NEW.activo = true)
-    EXECUTE FUNCTION asignar_notificaciones_a_nuevo_usuario_grupo();
-
--- ============================================================================
--- 8. VISTA: Vista de notificaciones con información completa
+-- 5. VISTA: Vista de notificaciones con información completa
 -- ============================================================================
 CREATE OR REPLACE VIEW vista_notificaciones_completa AS
 SELECT 
@@ -351,13 +220,11 @@ SELECT
     -- Estadísticas
     COUNT(DISTINCT nd.id_usuario) AS total_destinatarios,
     COUNT(DISTINCT CASE WHEN nd.leida = true THEN nd.id_usuario END) AS total_leidas,
-    COUNT(DISTINCT CASE WHEN nd.confirmada = true THEN nd.id_usuario END) AS total_confirmadas,
-    COUNT(DISTINCT ng.id_grupo) AS total_grupos
+    COUNT(DISTINCT CASE WHEN nd.confirmada = true THEN nd.id_usuario END) AS total_confirmadas
 FROM notificaciones n
 LEFT JOIN aplicaciones a ON n.id_aplicacion = a.id_aplicacion
 LEFT JOIN usuarios u_creador ON n.creado_por = u_creador.id_usuario
 LEFT JOIN notificacion_destinatarios nd ON n.id_notificacion = nd.id_notificacion
-LEFT JOIN notificacion_grupos ng ON n.id_notificacion = ng.id_notificacion
 GROUP BY 
     n.id_notificacion,
     n.titulo,
@@ -386,7 +253,6 @@ COMMENT ON VIEW vista_notificaciones_completa IS 'Vista que muestra las notifica
 -- Para verificar la creación:
 -- SELECT * FROM notificaciones;
 -- SELECT * FROM notificacion_destinatarios;
--- SELECT * FROM notificacion_grupos;
 -- SELECT * FROM vista_notificaciones_completa;
 -- ============================================================================
 

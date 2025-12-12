@@ -16,5 +16,7 @@ public interface IAplicacionService {
     List<AplicacionResponseDTO> listar();
     
     AplicacionResponseDTO listarPorId(Integer id);
+    
+    AplicacionResponseDTO listarPorCodigo(String codigo);
 }
 
