@@ -104,6 +104,22 @@ public class NotificacionController {
         return ResponseEntity.ok(notificaciones);
     }
     
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<List<NotificacionUsuarioDTO>> obtenerTodasNotificaciones(
+            @PathVariable Integer idUsuario) {
+        List<NotificacionUsuarioDTO> notificaciones = notificacionService.obtenerTodasNotificaciones(idUsuario);
+        return ResponseEntity.ok(notificaciones);
+    }
+    
+    @GetMapping("/usuario/{idUsuario}/aplicacion/{idAplicacion}")
+    public ResponseEntity<List<NotificacionUsuarioDTO>> obtenerTodasNotificacionesPorAplicacion(
+            @PathVariable Integer idUsuario,
+            @PathVariable Integer idAplicacion) {
+        List<NotificacionUsuarioDTO> notificaciones = 
+                notificacionService.obtenerTodasNotificacionesPorAplicacion(idUsuario, idAplicacion);
+        return ResponseEntity.ok(notificaciones);
+    }
+    
     @PutMapping("/{idNotificacion}/usuario/{idUsuario}/marcar-leida")
     public ResponseEntity<?> marcarComoLeida(@PathVariable Integer idNotificacion,
                                             @PathVariable Integer idUsuario) {
@@ -126,21 +142,6 @@ public class NotificacionController {
             notificacionService.confirmarNotificacion(idNotificacion, idUsuario);
             Map<String, String> respuesta = new HashMap<>();
             respuesta.put("mensaje", "Notificación confirmada");
-            return ResponseEntity.ok(respuesta);
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-        }
-    }
-    
-    @PostMapping("/{idNotificacion}/asignar-grupo/{idGrupo}")
-    public ResponseEntity<?> asignarNotificacionAGrupo(@PathVariable Integer idNotificacion,
-                                                      @PathVariable Integer idGrupo) {
-        try {
-            notificacionService.asignarNotificacionAGrupo(idNotificacion, idGrupo);
-            Map<String, String> respuesta = new HashMap<>();
-            respuesta.put("mensaje", "Notificación asignada al grupo correctamente");
             return ResponseEntity.ok(respuesta);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();

@@ -27,7 +27,6 @@ public class NotificacionResponseDTO {
     private Long totalDestinatarios;
     private Long totalLeidas;
     private Long totalConfirmadas;
-    private Long totalGrupos;
     
     // Constructors
     public NotificacionResponseDTO() {
@@ -218,14 +217,6 @@ public class NotificacionResponseDTO {
     
     public void setTotalConfirmadas(Long totalConfirmadas) {
         this.totalConfirmadas = totalConfirmadas;
-    }
-    
-    public Long getTotalGrupos() {
-        return totalGrupos;
-    }
-    
-    public void setTotalGrupos(Long totalGrupos) {
-        this.totalGrupos = totalGrupos;
     }
 }
 

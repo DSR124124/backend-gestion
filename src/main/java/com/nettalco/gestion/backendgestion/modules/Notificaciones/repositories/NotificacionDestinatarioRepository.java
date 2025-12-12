@@ -60,6 +60,41 @@ public interface NotificacionDestinatarioRepository extends JpaRepository<Notifi
             @Param("idAplicacion") Integer idAplicacion,
             @Param("ahora") LocalDateTime ahora);
     
+    @Query("SELECT nd FROM NotificacionDestinatario nd " +
+           "WHERE nd.usuario.idUsuario = :idUsuario " +
+           "AND nd.notificacion.activo = true " +
+           "AND (nd.notificacion.fechaExpiracion IS NULL OR nd.notificacion.fechaExpiracion > :ahora) " +
+           "AND (nd.notificacion.fechaEnvio IS NULL OR nd.notificacion.fechaEnvio <= :ahora) " +
+           "ORDER BY " +
+           "CASE nd.notificacion.prioridad " +
+           "WHEN 'urgente' THEN 1 " +
+           "WHEN 'alta' THEN 2 " +
+           "WHEN 'normal' THEN 3 " +
+           "WHEN 'baja' THEN 4 " +
+           "END, " +
+           "nd.notificacion.fechaCreacion DESC")
+    List<NotificacionDestinatario> findTodasNotificacionesByUsuario(@Param("idUsuario") Integer idUsuario, 
+                                                                     @Param("ahora") LocalDateTime ahora);
+    
+    @Query("SELECT nd FROM NotificacionDestinatario nd " +
+           "WHERE nd.usuario.idUsuario = :idUsuario " +
+           "AND nd.notificacion.activo = true " +
+           "AND nd.notificacion.aplicacion.idAplicacion = :idAplicacion " +
+           "AND (nd.notificacion.fechaExpiracion IS NULL OR nd.notificacion.fechaExpiracion > :ahora) " +
+           "AND (nd.notificacion.fechaEnvio IS NULL OR nd.notificacion.fechaEnvio <= :ahora) " +
+           "ORDER BY " +
+           "CASE nd.notificacion.prioridad " +
+           "WHEN 'urgente' THEN 1 " +
+           "WHEN 'alta' THEN 2 " +
+           "WHEN 'normal' THEN 3 " +
+           "WHEN 'baja' THEN 4 " +
+           "END, " +
+           "nd.notificacion.fechaCreacion DESC")
+    List<NotificacionDestinatario> findTodasNotificacionesByUsuarioAndAplicacion(
+            @Param("idUsuario") Integer idUsuario, 
+            @Param("idAplicacion") Integer idAplicacion,
+            @Param("ahora") LocalDateTime ahora);
+    
     boolean existsByNotificacion_IdNotificacionAndUsuario_IdUsuario(Integer idNotificacion, Integer idUsuario);
 }
 

@@ -41,9 +41,6 @@ public class NotificacionDTO {
     // Para asignar a usuarios individuales
     private List<Integer> idUsuarios;
     
-    // Para asignar a grupos
-    private List<Integer> idGrupos;
-    
     // Constructors
     public NotificacionDTO() {
     }
@@ -151,14 +148,6 @@ public class NotificacionDTO {
     
     public void setIdUsuarios(List<Integer> idUsuarios) {
         this.idUsuarios = idUsuarios;
-    }
-    
-    public List<Integer> getIdGrupos() {
-        return idGrupos;
-    }
-    
-    public void setIdGrupos(List<Integer> idGrupos) {
-        this.idGrupos = idGrupos;
     }
 }
 

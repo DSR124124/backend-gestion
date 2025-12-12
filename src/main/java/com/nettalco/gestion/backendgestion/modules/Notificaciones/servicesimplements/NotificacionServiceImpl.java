@@ -2,18 +2,12 @@ package com.nettalco.gestion.backendgestion.modules.Notificaciones.servicesimple
 
 import com.nettalco.gestion.backendgestion.modules.Aplicaciones.entities.Aplicacion;
 import com.nettalco.gestion.backendgestion.modules.Aplicaciones.repositories.AplicacionRepository;
-import com.nettalco.gestion.backendgestion.modules.Grupos.entities.GrupoDespliegue;
-import com.nettalco.gestion.backendgestion.modules.Grupos.entities.UsuarioGrupo;
-import com.nettalco.gestion.backendgestion.modules.Grupos.repositories.GrupoDespliegueRepository;
-import com.nettalco.gestion.backendgestion.modules.Grupos.repositories.UsuarioGrupoRepository;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.dtos.NotificacionDTO;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.dtos.NotificacionResponseDTO;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.dtos.NotificacionUsuarioDTO;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.entities.Notificacion;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.entities.NotificacionDestinatario;
-import com.nettalco.gestion.backendgestion.modules.Notificaciones.entities.NotificacionGrupo;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.repositories.NotificacionDestinatarioRepository;
-import com.nettalco.gestion.backendgestion.modules.Notificaciones.repositories.NotificacionGrupoRepository;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.repositories.NotificacionRepository;
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.servicesinterfaces.INotificacionService;
 import com.nettalco.gestion.backendgestion.modules.Usuarios.entities.Usuario;
@@ -38,19 +32,10 @@ public class NotificacionServiceImpl implements INotificacionService {
     private NotificacionDestinatarioRepository notificacionDestinatarioRepository;
     
     @Autowired
-    private NotificacionGrupoRepository notificacionGrupoRepository;
-    
-    @Autowired
     private AplicacionRepository aplicacionRepository;
     
     @Autowired
     private UsuarioRepository usuarioRepository;
-    
-    @Autowired
-    private GrupoDespliegueRepository grupoDespliegueRepository;
-    
-    @Autowired
-    private UsuarioGrupoRepository usuarioGrupoRepository;
     
     @Override
     public NotificacionResponseDTO crear(NotificacionDTO notificacionDTO) {
@@ -87,17 +72,13 @@ public class NotificacionServiceImpl implements INotificacionService {
         
         Notificacion notificacionGuardada = notificacionRepository.save(notificacion);
         
-        // Asignar a usuarios individuales si se proporcionan
-        if (notificacionDTO.getIdUsuarios() != null && !notificacionDTO.getIdUsuarios().isEmpty()) {
-            asignarNotificacionAUsuarios(notificacionGuardada.getIdNotificacion(), notificacionDTO.getIdUsuarios());
+        // Validar que se proporcionen usuarios (obligatorio)
+        if (notificacionDTO.getIdUsuarios() == null || notificacionDTO.getIdUsuarios().isEmpty()) {
+            throw new RuntimeException("Debe seleccionar al menos un usuario destinatario");
         }
         
-        // Asignar a grupos si se proporcionan
-        if (notificacionDTO.getIdGrupos() != null && !notificacionDTO.getIdGrupos().isEmpty()) {
-            for (Integer idGrupo : notificacionDTO.getIdGrupos()) {
-                asignarNotificacionAGrupo(notificacionGuardada.getIdNotificacion(), idGrupo);
-            }
-        }
+        // Asignar a usuarios individuales seleccionados
+        asignarNotificacionAUsuarios(notificacionGuardada.getIdNotificacion(), notificacionDTO.getIdUsuarios());
         
         return convertirAResponseDTO(notificacionGuardada);
     }
@@ -197,6 +178,31 @@ public class NotificacionServiceImpl implements INotificacionService {
     }
     
     @Override
+    @Transactional(readOnly = true)
+    public List<NotificacionUsuarioDTO> obtenerTodasNotificaciones(Integer idUsuario) {
+        LocalDateTime ahora = LocalDateTime.now();
+        List<NotificacionDestinatario> destinatarios = 
+                notificacionDestinatarioRepository.findTodasNotificacionesByUsuario(idUsuario, ahora);
+        
+        return destinatarios.stream()
+                .map(this::convertirAUsuarioDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<NotificacionUsuarioDTO> obtenerTodasNotificacionesPorAplicacion(Integer idUsuario, Integer idAplicacion) {
+        LocalDateTime ahora = LocalDateTime.now();
+        List<NotificacionDestinatario> destinatarios = 
+                notificacionDestinatarioRepository.findTodasNotificacionesByUsuarioAndAplicacion(
+                        idUsuario, idAplicacion, ahora);
+        
+        return destinatarios.stream()
+                .map(this::convertirAUsuarioDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
     public void marcarComoLeida(Integer idNotificacion, Integer idUsuario) {
         NotificacionDestinatario destinatario = 
                 notificacionDestinatarioRepository.findByNotificacion_IdNotificacionAndUsuario_IdUsuario(
@@ -225,53 +231,28 @@ public class NotificacionServiceImpl implements INotificacionService {
     }
     
     @Override
-    public void asignarNotificacionAGrupo(Integer idNotificacion, Integer idGrupo) {
+    public void asignarNotificacionAUsuarios(Integer idNotificacion, List<Integer> idUsuarios) {
+        // Validar que se proporcionen usuarios
+        if (idUsuarios == null || idUsuarios.isEmpty()) {
+            throw new RuntimeException("Debe seleccionar al menos un usuario destinatario");
+        }
+        
         Notificacion notificacion = notificacionRepository.findById(idNotificacion)
                 .orElseThrow(() -> new RuntimeException("Notificación no encontrada con id: " + idNotificacion));
         
+        // Validar que la notificación esté activa
         if (notificacion.getActivo() == null || !notificacion.getActivo()) {
             throw new RuntimeException("La notificación no está activa");
         }
         
-        GrupoDespliegue grupo = grupoDespliegueRepository.findById(idGrupo)
-                .orElseThrow(() -> new RuntimeException("Grupo no encontrado con id: " + idGrupo));
-        
-        if (grupo.getActivo() == null || !grupo.getActivo()) {
-            throw new RuntimeException("El grupo no está activo");
-        }
-        
-        // Crear relación notificación-grupo si no existe
-        if (!notificacionGrupoRepository.existsByNotificacion_IdNotificacionAndGrupo_IdGrupo(
-                idNotificacion, idGrupo)) {
-            NotificacionGrupo notificacionGrupo = new NotificacionGrupo(notificacion, grupo);
-            notificacionGrupoRepository.save(notificacionGrupo);
-        }
-        
-        // Asignar a todos los usuarios activos del grupo
-        List<UsuarioGrupo> usuariosGrupo = usuarioGrupoRepository.findByGrupoDespliegue_IdGrupoAndActivo(
-                idGrupo, true);
-        
-        for (UsuarioGrupo usuarioGrupo : usuariosGrupo) {
-            Usuario usuario = usuarioGrupo.getUsuario();
-            if (usuario.getActivo() != null && usuario.getActivo()) {
-                // Verificar si ya existe la asignación
-                if (!notificacionDestinatarioRepository.existsByNotificacion_IdNotificacionAndUsuario_IdUsuario(
-                        idNotificacion, usuario.getIdUsuario())) {
-                    NotificacionDestinatario destinatario = new NotificacionDestinatario(notificacion, usuario);
-                    notificacionDestinatarioRepository.save(destinatario);
-                }
-            }
-        }
-    }
-    
-    @Override
-    public void asignarNotificacionAUsuarios(Integer idNotificacion, List<Integer> idUsuarios) {
-        Notificacion notificacion = notificacionRepository.findById(idNotificacion)
-                .orElseThrow(() -> new RuntimeException("Notificación no encontrada con id: " + idNotificacion));
-        
         for (Integer idUsuario : idUsuarios) {
             Usuario usuario = usuarioRepository.findById(idUsuario)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + idUsuario));
+            
+            // Validar que el usuario esté activo
+            if (usuario.getActivo() == null || !usuario.getActivo()) {
+                throw new RuntimeException("El usuario con id " + idUsuario + " no está activo");
+            }
             
             // Verificar si ya existe la asignación
             if (!notificacionDestinatarioRepository.existsByNotificacion_IdNotificacionAndUsuario_IdUsuario(
@@ -310,10 +291,6 @@ public class NotificacionServiceImpl implements INotificacionService {
         dto.setTotalDestinatarios((long) destinatarios.size());
         dto.setTotalLeidas(destinatarios.stream().filter(NotificacionDestinatario::getLeida).count());
         dto.setTotalConfirmadas(destinatarios.stream().filter(NotificacionDestinatario::getConfirmada).count());
-        
-        List<NotificacionGrupo> grupos = 
-                notificacionGrupoRepository.findByNotificacion_IdNotificacion(notificacion.getIdNotificacion());
-        dto.setTotalGrupos((long) grupos.size());
         
         return dto;
     }

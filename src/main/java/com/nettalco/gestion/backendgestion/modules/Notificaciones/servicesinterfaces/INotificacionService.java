@@ -24,11 +24,13 @@ public interface INotificacionService {
     
     List<NotificacionUsuarioDTO> obtenerNotificacionesNoLeidasPorAplicacion(Integer idUsuario, Integer idAplicacion);
     
+    List<NotificacionUsuarioDTO> obtenerTodasNotificaciones(Integer idUsuario);
+    
+    List<NotificacionUsuarioDTO> obtenerTodasNotificacionesPorAplicacion(Integer idUsuario, Integer idAplicacion);
+    
     void marcarComoLeida(Integer idNotificacion, Integer idUsuario);
     
     void confirmarNotificacion(Integer idNotificacion, Integer idUsuario);
-    
-    void asignarNotificacionAGrupo(Integer idNotificacion, Integer idGrupo);
     
     void asignarNotificacionAUsuarios(Integer idNotificacion, List<Integer> idUsuarios);
 }
