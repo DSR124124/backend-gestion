@@ -11,10 +11,11 @@ public class NotificacionUsuarioDTO {
     private String tipoNotificacion;
     private String prioridad;
     private LocalDateTime fechaCreacion;
-    private LocalDateTime fechaExpiracion;
+    private LocalDateTime fechaEnvio;
     private Boolean requiereConfirmacion;
     private Map<String, Object> datosAdicionales;
     private String nombreAplicacion;
+    private String creadorNombre;
     private Boolean leida;
     private LocalDateTime fechaLectura;
     private Boolean confirmada;
@@ -73,12 +74,12 @@ public class NotificacionUsuarioDTO {
         this.fechaCreacion = fechaCreacion;
     }
     
-    public LocalDateTime getFechaExpiracion() {
-        return fechaExpiracion;
+    public LocalDateTime getFechaEnvio() {
+        return fechaEnvio;
     }
-    
-    public void setFechaExpiracion(LocalDateTime fechaExpiracion) {
-        this.fechaExpiracion = fechaExpiracion;
+
+    public void setFechaEnvio(LocalDateTime fechaEnvio) {
+        this.fechaEnvio = fechaEnvio;
     }
     
     public Boolean getRequiereConfirmacion() {
@@ -103,6 +104,14 @@ public class NotificacionUsuarioDTO {
     
     public void setNombreAplicacion(String nombreAplicacion) {
         this.nombreAplicacion = nombreAplicacion;
+    }
+
+    public String getCreadorNombre() {
+        return creadorNombre;
+    }
+
+    public void setCreadorNombre(String creadorNombre) {
+        this.creadorNombre = creadorNombre;
     }
     
     public Boolean getLeida() {

@@ -46,9 +46,6 @@ public class Notificacion {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
     
-    @Column(name = "fecha_expiracion")
-    private LocalDateTime fechaExpiracion;
-    
     @Column(name = "fecha_envio")
     private LocalDateTime fechaEnvio;
     
@@ -152,14 +149,6 @@ public class Notificacion {
     
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
-    }
-    
-    public LocalDateTime getFechaExpiracion() {
-        return fechaExpiracion;
-    }
-    
-    public void setFechaExpiracion(LocalDateTime fechaExpiracion) {
-        this.fechaExpiracion = fechaExpiracion;
     }
     
     public LocalDateTime getFechaEnvio() {

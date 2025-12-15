@@ -315,11 +315,13 @@ public class NotificacionServiceImpl implements INotificacionService {
         dto.setTipoNotificacion(notificacion.getTipoNotificacion());
         dto.setPrioridad(notificacion.getPrioridad());
         dto.setFechaCreacion(notificacion.getFechaCreacion());
-        dto.setFechaExpiracion(notificacion.getFechaExpiracion());
+        dto.setFechaEnvio(notificacion.getFechaEnvio());
         dto.setRequiereConfirmacion(notificacion.getRequiereConfirmacion());
         dto.setDatosAdicionales(notificacion.getDatosAdicionales());
-        dto.setNombreAplicacion(notificacion.getAplicacion() != null ? 
+        dto.setNombreAplicacion(notificacion.getAplicacion() != null ?
                                notificacion.getAplicacion().getNombreAplicacion() : null);
+        dto.setCreadorNombre(notificacion.getCreadoPor() != null ?
+                             notificacion.getCreadoPor().getNombreCompleto() : null);
         dto.setLeida(destinatario.getLeida());
         dto.setFechaLectura(destinatario.getFechaLectura());
         dto.setConfirmada(destinatario.getConfirmada());
