@@ -6,6 +6,8 @@ import com.nettalco.gestion.backendgestion.modules.Notificaciones.dtos.Notificac
 import com.nettalco.gestion.backendgestion.modules.Notificaciones.servicesinterfaces.INotificacionService;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ import java.util.Map;
 @RequestMapping("/api/notificaciones")
 @CrossOrigin(origins = "*")
 public class NotificacionController {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificacionController.class);
     
     @Autowired
     private INotificacionService notificacionService;
@@ -26,9 +30,17 @@ public class NotificacionController {
     @PostMapping
     public ResponseEntity<?> crear(@Valid @RequestBody NotificacionDTO notificacionDTO) {
         try {
+            log.info("Creando notificación: titulo='{}', mensaje='{}', idAplicacion={}, creadoPor={}, idUsuarios={}",
+                    notificacionDTO.getTitulo(),
+                    notificacionDTO.getMensaje(),
+                    notificacionDTO.getIdAplicacion(),
+                    notificacionDTO.getCreadoPor(),
+                    notificacionDTO.getIdUsuarios());
+
             NotificacionResponseDTO notificacionCreada = notificacionService.crear(notificacionDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(notificacionCreada);
         } catch (RuntimeException e) {
+            log.error("Error al crear notificación", e);
             Map<String, String> error = new HashMap<>();
             error.put("mensaje", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -42,6 +54,7 @@ public class NotificacionController {
             NotificacionResponseDTO notificacionActualizada = notificacionService.actualizar(id, notificacionDTO);
             return ResponseEntity.ok(notificacionActualizada);
         } catch (RuntimeException e) {
+            log.error("Error al actualizar notificación con id {}", id, e);
             Map<String, String> error = new HashMap<>();
             error.put("mensaje", e.getMessage());
             HttpStatus status = e.getMessage().contains("no encontrada") ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
@@ -57,6 +70,7 @@ public class NotificacionController {
             respuesta.put("mensaje", "Notificación eliminada correctamente");
             return ResponseEntity.ok(respuesta);
         } catch (RuntimeException e) {
+            log.error("Error al eliminar notificación con id {}", id, e);
             Map<String, String> error = new HashMap<>();
             error.put("mensaje", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
