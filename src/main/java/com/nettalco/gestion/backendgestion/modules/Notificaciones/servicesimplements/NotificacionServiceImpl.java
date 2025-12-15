@@ -14,6 +14,7 @@ import com.nettalco.gestion.backendgestion.modules.Usuarios.entities.Usuario;
 import com.nettalco.gestion.backendgestion.modules.Usuarios.repositories.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,9 @@ public class NotificacionServiceImpl implements INotificacionService {
     
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
     
     @Override
     public NotificacionResponseDTO crear(NotificacionDTO notificacionDTO) {
@@ -79,8 +83,14 @@ public class NotificacionServiceImpl implements INotificacionService {
         
         // Asignar a usuarios individuales seleccionados
         asignarNotificacionAUsuarios(notificacionGuardada.getIdNotificacion(), notificacionDTO.getIdUsuarios());
+
+        NotificacionResponseDTO responseDTO = convertirAResponseDTO(notificacionGuardada);
+
+        // Notificar en tiempo real a través de WebSocket (broadcast)
+        // El frontend puede filtrar por creadoPor / destinatarios según corresponda
+        messagingTemplate.convertAndSend("/topic/notificaciones-nuevas", responseDTO);
         
-        return convertirAResponseDTO(notificacionGuardada);
+        return responseDTO;
     }
     
     @Override
