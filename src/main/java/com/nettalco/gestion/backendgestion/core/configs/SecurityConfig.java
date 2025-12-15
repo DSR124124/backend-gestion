@@ -40,7 +40,9 @@ public class SecurityConfig {
                     "/api/health/**",     // Permitir health check
                     "/gestion/api/health/**", // Permitir health check con context-path
                     "/api/version-app/**", // Permitir obtener versión de apps
-                    "/gestion/api/version-app/**" // Permitir versión de apps con context-path
+                    "/gestion/api/version-app/**", // Permitir versión de apps con context-path
+                    "/ws-notificaciones/**",       // WebSocket/SockJS sin autenticación (path sin context-path)
+                    "/gestion/ws-notificaciones/**"// WebSocket/SockJS sin autenticación (con context-path)
                 ).permitAll()
                 .anyRequest().authenticated() // Todos los demás endpoints requieren autenticación
             )
