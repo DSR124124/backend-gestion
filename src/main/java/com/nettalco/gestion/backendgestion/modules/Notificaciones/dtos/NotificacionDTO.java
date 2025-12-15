@@ -26,8 +26,6 @@ public class NotificacionDTO {
     @NotNull(message = "El usuario creador es obligatorio")
     private Integer creadoPor;
     
-    private LocalDateTime fechaExpiracion;
-    
     private LocalDateTime fechaEnvio;
     
     private Boolean requiereConfirmacion = false;
@@ -92,14 +90,6 @@ public class NotificacionDTO {
     
     public void setCreadoPor(Integer creadoPor) {
         this.creadoPor = creadoPor;
-    }
-    
-    public LocalDateTime getFechaExpiracion() {
-        return fechaExpiracion;
-    }
-    
-    public void setFechaExpiracion(LocalDateTime fechaExpiracion) {
-        this.fechaExpiracion = fechaExpiracion;
     }
     
     public LocalDateTime getFechaEnvio() {

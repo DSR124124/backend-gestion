@@ -20,10 +20,5 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
     List<Notificacion> findByActivo(Boolean activo);
     
     List<Notificacion> findByAplicacion_IdAplicacionAndActivo(Integer idAplicacion, Boolean activo);
-    
-    @Query("SELECT n FROM Notificacion n WHERE n.activo = true " +
-           "AND (n.fechaExpiracion IS NULL OR n.fechaExpiracion > :ahora) " +
-           "AND (n.fechaEnvio IS NULL OR n.fechaEnvio <= :ahora)")
-    List<Notificacion> findNotificacionesActivasYVigentes(@Param("ahora") LocalDateTime ahora);
 }
 

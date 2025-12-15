@@ -15,7 +15,6 @@ public class NotificacionResponseDTO {
     private Integer creadoPor;
     private String creadorNombre;
     private LocalDateTime fechaCreacion;
-    private LocalDateTime fechaExpiracion;
     private LocalDateTime fechaEnvio;
     private Boolean requiereConfirmacion;
     private Boolean mostrarComoRecordatorio;
@@ -35,7 +34,7 @@ public class NotificacionResponseDTO {
     public NotificacionResponseDTO(Integer idNotificacion, String titulo, String mensaje, 
                                   String tipoNotificacion, String prioridad, Integer idAplicacion,
                                   String nombreAplicacion, Integer creadoPor, String creadorNombre,
-                                  LocalDateTime fechaCreacion, LocalDateTime fechaExpiracion,
+                                  LocalDateTime fechaCreacion,
                                   LocalDateTime fechaEnvio, Boolean requiereConfirmacion,
                                   Boolean mostrarComoRecordatorio, Boolean activo,
                                   Map<String, Object> datosAdicionales, LocalDateTime fechaModificacion) {
@@ -49,7 +48,6 @@ public class NotificacionResponseDTO {
         this.creadoPor = creadoPor;
         this.creadorNombre = creadorNombre;
         this.fechaCreacion = fechaCreacion;
-        this.fechaExpiracion = fechaExpiracion;
         this.fechaEnvio = fechaEnvio;
         this.requiereConfirmacion = requiereConfirmacion;
         this.mostrarComoRecordatorio = mostrarComoRecordatorio;
@@ -137,14 +135,6 @@ public class NotificacionResponseDTO {
     
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
-    }
-    
-    public LocalDateTime getFechaExpiracion() {
-        return fechaExpiracion;
-    }
-    
-    public void setFechaExpiracion(LocalDateTime fechaExpiracion) {
-        this.fechaExpiracion = fechaExpiracion;
     }
     
     public LocalDateTime getFechaEnvio() {

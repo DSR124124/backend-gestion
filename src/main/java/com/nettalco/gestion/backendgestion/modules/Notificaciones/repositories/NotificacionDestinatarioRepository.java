@@ -27,7 +27,6 @@ public interface NotificacionDestinatarioRepository extends JpaRepository<Notifi
            "WHERE nd.usuario.idUsuario = :idUsuario " +
            "AND nd.leida = false " +
            "AND nd.notificacion.activo = true " +
-           "AND (nd.notificacion.fechaExpiracion IS NULL OR nd.notificacion.fechaExpiracion > :ahora) " +
            "AND (nd.notificacion.fechaEnvio IS NULL OR nd.notificacion.fechaEnvio <= :ahora) " +
            "ORDER BY " +
            "CASE nd.notificacion.prioridad " +
@@ -45,7 +44,6 @@ public interface NotificacionDestinatarioRepository extends JpaRepository<Notifi
            "AND nd.leida = false " +
            "AND nd.notificacion.activo = true " +
            "AND nd.notificacion.aplicacion.idAplicacion = :idAplicacion " +
-           "AND (nd.notificacion.fechaExpiracion IS NULL OR nd.notificacion.fechaExpiracion > :ahora) " +
            "AND (nd.notificacion.fechaEnvio IS NULL OR nd.notificacion.fechaEnvio <= :ahora) " +
            "ORDER BY " +
            "CASE nd.notificacion.prioridad " +
@@ -63,7 +61,6 @@ public interface NotificacionDestinatarioRepository extends JpaRepository<Notifi
     @Query("SELECT nd FROM NotificacionDestinatario nd " +
            "WHERE nd.usuario.idUsuario = :idUsuario " +
            "AND nd.notificacion.activo = true " +
-           "AND (nd.notificacion.fechaExpiracion IS NULL OR nd.notificacion.fechaExpiracion > :ahora) " +
            "AND (nd.notificacion.fechaEnvio IS NULL OR nd.notificacion.fechaEnvio <= :ahora) " +
            "ORDER BY " +
            "CASE nd.notificacion.prioridad " +
@@ -80,7 +77,6 @@ public interface NotificacionDestinatarioRepository extends JpaRepository<Notifi
            "WHERE nd.usuario.idUsuario = :idUsuario " +
            "AND nd.notificacion.activo = true " +
            "AND nd.notificacion.aplicacion.idAplicacion = :idAplicacion " +
-           "AND (nd.notificacion.fechaExpiracion IS NULL OR nd.notificacion.fechaExpiracion > :ahora) " +
            "AND (nd.notificacion.fechaEnvio IS NULL OR nd.notificacion.fechaEnvio <= :ahora) " +
            "ORDER BY " +
            "CASE nd.notificacion.prioridad " +

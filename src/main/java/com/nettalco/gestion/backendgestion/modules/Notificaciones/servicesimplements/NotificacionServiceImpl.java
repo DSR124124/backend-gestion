@@ -65,7 +65,6 @@ public class NotificacionServiceImpl implements INotificacionService {
                                  notificacionDTO.getPrioridad() : "normal");
         notificacion.setAplicacion(aplicacion);
         notificacion.setCreadoPor(creador);
-        notificacion.setFechaExpiracion(notificacionDTO.getFechaExpiracion());
         notificacion.setFechaEnvio(notificacionDTO.getFechaEnvio());
         notificacion.setRequiereConfirmacion(notificacionDTO.getRequiereConfirmacion() != null ? 
                                            notificacionDTO.getRequiereConfirmacion() : false);
@@ -113,7 +112,6 @@ public class NotificacionServiceImpl implements INotificacionService {
         if (notificacionDTO.getPrioridad() != null) {
             notificacion.setPrioridad(notificacionDTO.getPrioridad());
         }
-        notificacion.setFechaExpiracion(notificacionDTO.getFechaExpiracion());
         notificacion.setFechaEnvio(notificacionDTO.getFechaEnvio());
         if (notificacionDTO.getRequiereConfirmacion() != null) {
             notificacion.setRequiereConfirmacion(notificacionDTO.getRequiereConfirmacion());
@@ -285,7 +283,6 @@ public class NotificacionServiceImpl implements INotificacionService {
                 notificacion.getCreadoPor() != null ? notificacion.getCreadoPor().getIdUsuario() : null,
                 notificacion.getCreadoPor() != null ? notificacion.getCreadoPor().getNombreCompleto() : null,
                 notificacion.getFechaCreacion(),
-                notificacion.getFechaExpiracion(),
                 notificacion.getFechaEnvio(),
                 notificacion.getRequiereConfirmacion(),
                 notificacion.getMostrarComoRecordatorio(),
